@@ -54,7 +54,7 @@ class ProfileFragment : Fragment() {
         val btnEdit = Button(requireContext()).apply {
             text = "Edit Profile"
             setOnClickListener {
-                showEditDialog(user, tvName, tvEmail)
+                showEditDialog(viewModel, tvName, tvEmail)
             }
         }
 
@@ -66,9 +66,9 @@ class ProfileFragment : Fragment() {
         return root
     }
 
-    private fun showEditDialog(user: User?, tvName: TextView, tvEmail: TextView) {
+    private fun showEditDialog(viewModel: ProfileViewModel, tvName: TextView, tvEmail: TextView) {
+        val user = viewModel.user
         if (user == null) return
-        val inflater = LayoutInflater.from(context)
         val view = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.VERTICAL
         }
