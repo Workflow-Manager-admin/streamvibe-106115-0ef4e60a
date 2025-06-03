@@ -91,15 +91,15 @@ class HomeFragment : Fragment() {
 
             val recyclerView = RecyclerView(requireContext()).apply {
                 layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    resources.getDimensionPixelSize(R.dimen.category_list_height)
-                )
-                layoutManager =
-                    LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+                    ViewGroup.LayoutParams.MATCH_PARENT, 130.dp)
+                layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
                 val mediaList = cat.mediaIds.mapNotNull { ContentRepository.getMediaById(it) }
-                adapter = MediaItemAdapter(mediaList) {
-                    // on item click: show toast, in a real app go to detail/player
-                    Toast.makeText(context, "Clicked: ${it.title}", Toast.LENGTH_SHORT).show()
+                adapter = com.example.streamvibe.ui.adapter.MediaItemAdapter(mediaList) { item ->
+                    // On item click: Launch PlayerFragment with selected media details
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, PlayerFragment.newInstance(item.id))
+                        .addToBackStack(null)
+                        .commit()
                 }
             }
             containerLayout.addView(recyclerView)
@@ -116,12 +116,13 @@ class HomeFragment : Fragment() {
 
         val recommendedRecycler = RecyclerView(requireContext()).apply {
             layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                resources.getDimensionPixelSize(R.dimen.category_list_height)
-            )
+                ViewGroup.LayoutParams.MATCH_PARENT, 130.dp)
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-            adapter = MediaItemAdapter(viewModel.recommended) {
-                Toast.makeText(context, "Clicked: ${it.title}", Toast.LENGTH_SHORT).show()
+            adapter = com.example.streamvibe.ui.adapter.MediaItemAdapter(viewModel.recommended) { item ->
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, PlayerFragment.newInstance(item.id))
+                    .addToBackStack(null)
+                    .commit()
             }
         }
         containerLayout.addView(recommendedRecycler)

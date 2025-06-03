@@ -12,10 +12,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.streamvibe.R
 
+import com.example.streamvibe.repository.ContentRepository
+import com.example.streamvibe.model.MediaItem
+
 // PUBLIC_INTERFACE
 class PlayerViewModel : ViewModel() {
     var isPlaying = false
     var title: String = "Demo Video"
+    var mediaItem: MediaItem? = null
+    fun setup(mediaId: String?) {
+        if (mediaId != null) {
+            mediaItem = ContentRepository.getMediaById(mediaId)
+            title = mediaItem?.title ?: "Unknown media"
+        }
+    }
 }
 
 // PUBLIC_INTERFACE
