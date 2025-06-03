@@ -39,6 +39,21 @@ class MediaItemAdapter(
         val v = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_media_card, parent, false)
 
+        // Responsive resizing: set card width/flex using screen size and orientation
+        val displayMetrics = parent.context.resources.displayMetrics
+        val screenWidth = displayMetrics.widthPixels
+        val isLandscape = displayMetrics.widthPixels > displayMetrics.heightPixels
+        val layoutParams = v.layoutParams
+        // Use wider cards in landscape or grid, else default to flex (wrap_content) for portrait
+        if (layoutParams != null) {
+            if (isLandscape) {
+                layoutParams.width = (screenWidth * 0.32).toInt()
+            } else {
+                layoutParams.width = (screenWidth * 0.45).toInt()
+            }
+            v.layoutParams = layoutParams
+        }
+
         val holder = MediaItemViewHolder(v)
         // Dynamically add a button for watchlist toggle if requested and not already in layout
         if (showWatchlistButton) {
@@ -50,8 +65,16 @@ class MediaItemAdapter(
                     ViewGroup.LayoutParams.WRAP_CONTENT
                 )
             }
-            // Add to the card (into layout)
-            (v as? ViewGroup)?.addView(btn)
+            // Add below the info row if possible (make sure not repeated)
+            if (v is ViewGroup) {
+                // Try inserting below llCardInfo, else at end
+                val idx = (0 until v.childCount).firstOrNull { v.getChildAt(it).id == parent.context.resources.getIdentifier("llCardInfo", "id", parent.context.packageName) }
+                if (idx != null) {
+                    v.addView(btn, idx+1)
+                } else {
+                    v.addView(btn)
+                }
+            }
             holder.watchlistBtn = btn
         }
         return holder
