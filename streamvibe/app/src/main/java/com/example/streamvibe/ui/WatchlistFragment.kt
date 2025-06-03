@@ -47,29 +47,54 @@ class WatchlistFragment : Fragment() {
 
         recyclerView = RecyclerView(requireContext())
         recyclerView.layoutManager = LinearLayoutManager(context)
-        adapter = MediaItemAdapter(viewModel.watchlist) { item ->
-            // On click, go to player; long click removes from watchlist
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, PlayerFragment.newInstance(item.id))
-                .addToBackStack(null)
-                .commit()
-        }
-        recyclerView.adapter = adapter
-        recyclerView.setOnLongClickListener {
-            val user = AuthRepository.getCurrentUser()
-            val pos = (recyclerView.layoutManager as LinearLayoutManager)
-                .findFirstVisibleItemPosition()
-            if (user != null && pos != RecyclerView.NO_POSITION) {
-                val media = viewModel.watchlist[pos]
-                WatchlistRepository.removeFromWatchlist(user, media.id)
-                viewModel.refreshWatchlist()
-                adapter = MediaItemAdapter(viewModel.watchlist) {/* no-op */ }
-                recyclerView.adapter = adapter
+        adapter = MediaItemAdapter(
+            viewModel.watchlist,
+            onItemClick = { item ->
+                // On click, go to player screen
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, PlayerFragment.newInstance(item.id))
+                    .addToBackStack(null)
+                    .commit()
+            },
+            showWatchlistButton = true,
+            onWatchlistToggle = { item, add ->
+                val user = AuthRepository.getCurrentUser()
+                if (user != null) {
+                    if (!add) {
+                        WatchlistRepository.removeFromWatchlist(user, item.id)
+                        Toast.makeText(requireContext(), "Removed from watchlist", Toast.LENGTH_SHORT).show()
+                    }
+                    // Do not allow add in WatchlistFragment (since listed means already in)
+                    // Refresh UI
+                    viewModel.refreshWatchlist()
+                    recyclerView.adapter = MediaItemAdapter(
+                        viewModel.watchlist,
+                        onItemClick = { /* handle as above */ },
+                        showWatchlistButton = true,
+                        onWatchlistToggle = this::onWatchlistToggleInternal // helper to avoid code duplication
+                    )
+                }
             }
-            true
-        }
+        )
+        recyclerView.adapter = adapter
 
         (root as? FrameLayout)?.addView(recyclerView)
         return root
+    }
+
+    // Helper for onWatchlistToggle callback reuse
+    private fun onWatchlistToggleInternal(item: MediaItem, add: Boolean) {
+        val user = AuthRepository.getCurrentUser()
+        if (user != null && !add) {
+            WatchlistRepository.removeFromWatchlist(user, item.id)
+            Toast.makeText(requireContext(), "Removed from watchlist", Toast.LENGTH_SHORT).show()
+            viewModel.refreshWatchlist()
+            recyclerView.adapter = MediaItemAdapter(
+                viewModel.watchlist,
+                onItemClick = { /* no-op or show player */ },
+                showWatchlistButton = true,
+                onWatchlistToggle = this::onWatchlistToggleInternal
+            )
+        }
     }
 }
