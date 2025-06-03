@@ -100,12 +100,19 @@ class AuthFragment : Fragment() {
                 val ok = viewModel.login(context, email, password)
                 if (ok) {
                     Toast.makeText(context, "Logged in!", Toast.LENGTH_SHORT).show()
+                    // Replace fragment with HomeFragment after successful login
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, HomeFragment())
+                        .commit()
                 }
             } else {
                 val name = etName.text.toString()
                 val ok = viewModel.signUp(context, name, email, password)
                 if (ok) {
                     Toast.makeText(context, "Signed up!", Toast.LENGTH_SHORT).show()
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, HomeFragment())
+                        .commit()
                 }
             }
             updateUi()
