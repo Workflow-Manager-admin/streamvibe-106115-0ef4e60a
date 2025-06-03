@@ -47,18 +47,27 @@ class WatchlistFragment : Fragment() {
 
         recyclerView = RecyclerView(requireContext())
         recyclerView.layoutManager = LinearLayoutManager(context)
-        adapter = MediaItemAdapter(viewModel.watchlist) {
-            Toast.makeText(context, "Selected: ${it.title}", Toast.LENGTH_SHORT).show()
-            // Remove from watchlist on click for mock/demo
-            val user = AuthRepository.getCurrentUser()
-            if (user != null) {
-                WatchlistRepository.removeFromWatchlist(user, it.id)
-                viewModel.refreshWatchlist()
-                adapter = MediaItemAdapter(viewModel.watchlist) { /* same logic */ }
-                recyclerView.adapter = adapter
-            }
+        adapter = MediaItemAdapter(viewModel.watchlist) { item ->
+            // On click, go to player; long click removes from watchlist
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, PlayerFragment.newInstance(item.id))
+                .addToBackStack(null)
+                .commit()
         }
         recyclerView.adapter = adapter
+        recyclerView.setOnLongClickListener {
+            val user = AuthRepository.getCurrentUser()
+            val pos = (recyclerView.layoutManager as LinearLayoutManager)
+                .findFirstVisibleItemPosition()
+            if (user != null && pos != RecyclerView.NO_POSITION) {
+                val media = viewModel.watchlist[pos]
+                WatchlistRepository.removeFromWatchlist(user, media.id)
+                viewModel.refreshWatchlist()
+                adapter = MediaItemAdapter(viewModel.watchlist) {/* no-op */ }
+                recyclerView.adapter = adapter
+            }
+            true
+        }
 
         (root as? FrameLayout)?.addView(recyclerView)
         return root
