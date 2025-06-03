@@ -77,8 +77,32 @@ class PlayerFragment : Fragment() {
                 ).show()
             }
         }
+
+        val btnWatchlist = Button(requireContext()).apply {
+            val user = com.example.streamvibe.repository.AuthRepository.getCurrentUser()
+            val inWatchlist = user != null && viewModel.mediaItem?.id?.let { com.example.streamvibe.repository.WatchlistRepository.isInWatchlist(user, it) } ?: false
+            text = if (inWatchlist) "Remove from Watchlist" else "Add to Watchlist"
+            isEnabled = user != null && viewModel.mediaItem != null
+            setOnClickListener {
+                val user = com.example.streamvibe.repository.AuthRepository.getCurrentUser()
+                val mediaId = viewModel.mediaItem?.id
+                if (user != null && mediaId != null) {
+                    val wasInWatchlist = com.example.streamvibe.repository.WatchlistRepository.isInWatchlist(user, mediaId)
+                    if (wasInWatchlist) {
+                        com.example.streamvibe.repository.WatchlistRepository.removeFromWatchlist(user, mediaId)
+                        text = "Add to Watchlist"
+                        Toast.makeText(context, "Removed from Watchlist", Toast.LENGTH_SHORT).show()
+                    } else {
+                        com.example.streamvibe.repository.WatchlistRepository.addToWatchlist(user, mediaId)
+                        text = "Remove from Watchlist"
+                        Toast.makeText(context, "Added to Watchlist", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
         layout.addView(tvTitle)
         layout.addView(btnPlayPause)
+        layout.addView(btnWatchlist)
         (root as? FrameLayout)?.addView(layout)
         return root
     }
