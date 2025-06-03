@@ -48,15 +48,20 @@ class HomeFragment : Fragment() {
         val root = inflater.inflate(R.layout.fragment_home, container, false)
         viewModel = ViewModelProvider(this)[HomeViewModel::class.java]
 
-        val containerLayout: LinearLayout = (root as ViewGroup).findViewById<ViewGroup>(0) as? LinearLayout
-            ?: root.findViewById(R.id.container) ?: (root as ViewGroup).getChildAt(0) as? LinearLayout
-            ?: root as LinearLayout
+        // Find root vertical LinearLayout in the inflated ScrollView
+        val containerLayout: LinearLayout = ((root as? ViewGroup)
+            ?.getChildAt(0) as? LinearLayout)
+            ?: (root as? LinearLayout)
+            ?: throw IllegalStateException("HomeFragment: Can't find root LinearLayout")
+
+        // Remove all placeholder stub children
+        containerLayout.removeAllViews()
 
         // Featured carousel (use first media)
         val featuredCard = CardView(requireContext()).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                resources.getDimensionPixelSize(R.dimen.carousel_height)
+                180.dp // fallback height if resource fails
             )
             radius = 16f
             setCardBackgroundColor(resources.getColor(R.color.secondary))
