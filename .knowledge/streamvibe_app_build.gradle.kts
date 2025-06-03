@@ -1,0 +1,1 @@
+{"is_source_file": true, "file_id": 3, "git_revision": "", "state": 1, "description": "", "external_files": [], "external_methods": [], "published": [], "classes": [], "methods": [], "calls": [], "search-terms": [], "hash": "ad313f42b6a4c18c6efc68500943490d", "format-version": 4, "code-base-name": "default", "filename": "streamvibe/app/build.gradle.kts", "knowledge_revision": 3}

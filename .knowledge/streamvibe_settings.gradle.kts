@@ -1,0 +1,1 @@
+{"is_source_file": true, "file_id": 20, "git_revision": "", "state": 1, "description": "", "external_files": [], "external_methods": [], "published": [], "classes": [], "methods": [], "calls": [], "search-terms": [], "hash": "435ee7dc57e06b6fb251306a1789f154", "format-version": 4, "code-base-name": "default", "filename": "streamvibe/settings.gradle.kts", "knowledge_revision": 20}
