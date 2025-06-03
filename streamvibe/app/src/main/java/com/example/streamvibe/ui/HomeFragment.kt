@@ -94,13 +94,38 @@ class HomeFragment : Fragment() {
                     ViewGroup.LayoutParams.MATCH_PARENT, 130.dp)
                 layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
                 val mediaList = cat.mediaIds.mapNotNull { ContentRepository.getMediaById(it) }
-                adapter = com.example.streamvibe.ui.adapter.MediaItemAdapter(mediaList) { item ->
-                    // On item click: Launch PlayerFragment with selected media details
-                    parentFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, PlayerFragment.newInstance(item.id))
-                        .addToBackStack(null)
-                        .commit()
-                }
+                adapter = com.example.streamvibe.ui.adapter.MediaItemAdapter(
+                    mediaList,
+                    onItemClick = { item ->
+                        // Open media
+                        parentFragmentManager.beginTransaction()
+                            .replace(R.id.fragment_container, PlayerFragment.newInstance(item.id))
+                            .addToBackStack(null)
+                            .commit()
+                    },
+                    showWatchlistButton = true,
+                    onWatchlistToggle = { item, add ->
+                        val user = AuthRepository.getCurrentUser()
+                        if (user != null) {
+                            if (add) {
+                                WatchlistRepository.addToWatchlist(user, item.id)
+                                Toast.makeText(requireContext(), "Added to Watchlist", Toast.LENGTH_SHORT).show()
+                            } else {
+                                WatchlistRepository.removeFromWatchlist(user, item.id)
+                                Toast.makeText(requireContext(), "Removed from Watchlist", Toast.LENGTH_SHORT).show()
+                            }
+                            // Refresh recommended list as well as category views
+                            viewModel.featured // (no-op, for future expansion)
+                            // re-bind the adapter for this section
+                            recyclerView.adapter = com.example.streamvibe.ui.adapter.MediaItemAdapter(
+                                mediaList,
+                                onItemClick = this.onItemClick,
+                                showWatchlistButton = true,
+                                onWatchlistToggle = this.onWatchlistToggle
+                            )
+                        }
+                    }
+                )
             }
             containerLayout.addView(recyclerView)
         }
@@ -118,12 +143,38 @@ class HomeFragment : Fragment() {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 130.dp)
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-            adapter = com.example.streamvibe.ui.adapter.MediaItemAdapter(viewModel.recommended) { item ->
-                parentFragmentManager.beginTransaction()
-                    .replace(R.id.fragment_container, PlayerFragment.newInstance(item.id))
-                    .addToBackStack(null)
-                    .commit()
-            }
+            adapter = com.example.streamvibe.ui.adapter.MediaItemAdapter(
+                viewModel.recommended,
+                onItemClick = { item ->
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, PlayerFragment.newInstance(item.id))
+                        .addToBackStack(null)
+                        .commit()
+                },
+                showWatchlistButton = true,
+                onWatchlistToggle = { item, add ->
+                    val user = AuthRepository.getCurrentUser()
+                    if (user != null) {
+                        if (add) {
+                            WatchlistRepository.addToWatchlist(user, item.id)
+                            Toast.makeText(requireContext(), "Added to Watchlist", Toast.LENGTH_SHORT).show()
+                        } else {
+                            WatchlistRepository.removeFromWatchlist(user, item.id)
+                            Toast.makeText(requireContext(), "Removed from Watchlist", Toast.LENGTH_SHORT).show()
+                        }
+                        // Refresh recommendations
+                        // (Recompute recommended list and re-bind adapter)
+                        val newRecommended = com.example.streamvibe.repository.RecommendationRepository
+                            .getForUser(user).mediaIds.mapNotNull { com.example.streamvibe.repository.ContentRepository.getMediaById(it) }
+                        recommendedRecycler.adapter = com.example.streamvibe.ui.adapter.MediaItemAdapter(
+                            newRecommended,
+                            onItemClick = this.onItemClick,
+                            showWatchlistButton = true,
+                            onWatchlistToggle = this.onWatchlistToggle
+                        )
+                    }
+                }
+            )
         }
         containerLayout.addView(recommendedRecycler)
 
