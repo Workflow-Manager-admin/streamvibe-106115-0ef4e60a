@@ -62,8 +62,11 @@ class SearchFragment : Fragment() {
         recyclerView.layoutParams = lp
         rootLayout.addView(recyclerView)
 
-        adapter = MediaItemAdapter(emptyList()) {
-            Toast.makeText(context, "Clicked: ${it.title}", Toast.LENGTH_SHORT).show()
+        adapter = MediaItemAdapter(emptyList()) { item ->
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, PlayerFragment.newInstance(item.id))
+                .addToBackStack(null)
+                .commit()
         }
         recyclerView.adapter = adapter
 
@@ -71,8 +74,11 @@ class SearchFragment : Fragment() {
             override fun afterTextChanged(s: Editable?) {
                 val q = s?.toString() ?: ""
                 viewModel.search(q)
-                adapter = MediaItemAdapter(viewModel.results) {
-                    Toast.makeText(context, "Clicked: ${it.title}", Toast.LENGTH_SHORT).show()
+                adapter = MediaItemAdapter(viewModel.results) { item ->
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, PlayerFragment.newInstance(item.id))
+                        .addToBackStack(null)
+                        .commit()
                 }
                 recyclerView.adapter = adapter
             }

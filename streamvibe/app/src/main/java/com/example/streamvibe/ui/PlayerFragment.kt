@@ -32,12 +32,27 @@ class PlayerViewModel : ViewModel() {
 class PlayerFragment : Fragment() {
     private lateinit var viewModel: PlayerViewModel
 
+    companion object {
+        private const val ARG_MEDIA_ID = "media_id"
+
+        // PUBLIC_INTERFACE
+        fun newInstance(mediaId: String?): PlayerFragment {
+            val fragment = PlayerFragment()
+            val args = Bundle()
+            args.putString(ARG_MEDIA_ID, mediaId)
+            fragment.arguments = args
+            return fragment
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val root = inflater.inflate(R.layout.fragment_player, container, false)
         viewModel = ViewModelProvider(this)[PlayerViewModel::class.java]
+        val mediaId = arguments?.getString(ARG_MEDIA_ID)
+        viewModel.setup(mediaId)
 
         // Build a mock player UI
         val layout = LinearLayout(requireContext()).apply {
@@ -51,7 +66,7 @@ class PlayerFragment : Fragment() {
             setTextColor(resources.getColor(R.color.accent))
         }
         val btnPlayPause = Button(requireContext()).apply {
-            text = "Play"
+            text = if (viewModel.isPlaying) "Pause" else "Play"
             setOnClickListener {
                 viewModel.isPlaying = !viewModel.isPlaying
                 text = if (viewModel.isPlaying) "Pause" else "Play"
